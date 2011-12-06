@@ -1,0 +1,37 @@
+This program is designed to be a super simple, portable manager for libraries
+of CDs. It is more or less an example of file and linked list operations, and
+is not practical for daily use.
+
+
+Contents:
+1. DESCRIPTION OF PROJECT FILES
+2. BUILDING THIS PROJECT
+
+--------
+
+1. DESCRIPTION OF PROJECT FILES:
+
+main.c:
+    Main source file, contains all definitions for this project.
+
+database.txt:
+    Example database. Contains albums formatted as a single entry per line,
+artist, album, year separated by spaces, spaces in strings replaced with _,
+and _ replaced with \, just in case.
+
+Makefile:
+    Makefile for GNU make(1), builds with cc(1) for Linux operating systems.
+The project should compile and run as is on Windows, but you are on your own.
+(I recommend using Visual C++ Express; it's free and works adequately.)
+
+--------
+
+2. BUILDING THIS PROJECT:
+
+    For GNU/Linux operating systems, make(1) can be used to compile. Be advised
+that the default build mode will link debugging symbols for gdb(1); to build a
+distributable version, type 'make release'.
+
+    On Windows, this project will compile, but you will likely be unable to use
+make unless you have cygwin'd it in. Import the source file into your favorite
+IDE and compile normally.

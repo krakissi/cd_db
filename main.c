@@ -15,11 +15,11 @@
 #define MAX_L 256
 
 typedef struct _node{
-	struct _node *next;				//Link
-	char *raw;						//Raw contents read from database file
-	char *artist,*album,*year;		//Elements
-	int year_i;						//Year converted to integer
-} node,*list; //node and *list are equivalent, but used in different situations.
+	struct _node *next;
+	char *raw;
+	char *artist,*album,*year;
+	int year_i;
+} node,*list;
 
 //Make strings friendly to users.
 char*desanitize(char *buffer);
