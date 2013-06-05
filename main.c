@@ -47,6 +47,9 @@ char *mash_case(char *source);
 // Remove the pos element from db.
 list rm(list db, int pos);
 
+// Strip return characters from a string.
+void chomp(char *str);
+
 
 int main(){
 	char state=0, *buffer, *free_buffer=malloc(sizeof(char));
@@ -61,8 +64,7 @@ int main(){
 
 		printf("\n> ");
 		fgets(buffer, 256, stdin);
-		for(i=0;(buffer[i]!='\n')&&(buffer[i]!='\0')&&(buffer[i]!='\r');i++);
-		buffer[i]='\0';
+		chomp(buffer);
 
 		// Command time!
 		if((!strcmp(buffer, "exit"))||(!strcmp(buffer, "quit"))||(!strcmp(buffer, "q")))
@@ -117,23 +119,17 @@ int main(){
 			temp->artist=calloc(MAX_L, sizeof(char));
 			printf("Artist: ");
 			fgets(temp->artist, MAX_L, stdin);
+			chomp(temp->artist);
 
 			temp->album=calloc(MAX_L, sizeof(char));
 			printf("Album: ");
 			fgets(temp->album, MAX_L, stdin);
+			chomp(temp->album);
 
 			temp->year=calloc(MAX_L, sizeof(char));
 			printf("Year: ");
 			fgets(temp->year, MAX_L, stdin);
-
-			for(i=0;temp->artist[i]!='\n'&&temp->artist[i]!='\0'&&temp->artist[i]!='\r';i++);
-			temp->artist[i]='\0';
-
-			for(i=0;temp->album[i]!='\n'&&temp->album[i]!='\0'&&temp->album[i]!='\r';i++);
-			temp->album[i]='\0';
-
-			for(i=0;temp->year[i]!='\n'&&temp->year[i]!='\0'&&temp->year[i]!='\r';i++);
-			temp->year[i]='\0';
+			chomp(temp->year);
 
 			temp->year_i=atoi(temp->year);
 			database=temp;
@@ -141,8 +137,7 @@ int main(){
 		// Save active database to a file (command save <filename>)
 		else if(!strncmp(buffer, "save ", 5)){
 			buffer+=5;
-			for(i=0;buffer[i]!='\n'&&buffer[i]!='\0'&&buffer[i]!='\r';i++);
-			buffer[i]='\0';
+			chomp(buffer);
 
 			printf("Attempting to write to %s...", buffer);
 			if(!(out=fopen(buffer, "w")))
@@ -182,7 +177,7 @@ int main(){
 				free_buffer=buffer=calloc(MAX_L, sizeof(char));
 				fgets(buffer, MAX_L, stdin);
 				buffer=mash_case(buffer);
-				if(*buffer=='y'||*buffer=='\n'||*buffer=='\r'||*buffer=='\0')
+				if(*buffer=='y'||*buffer=='\n'||*buffer=='\r'||!*buffer)
 					database=rm(database, u);
 			} else printf("No such entry.\n");
 		}
@@ -219,7 +214,7 @@ char *desanitize(char *buffer){
 void desanitize_r(char *buffer){
 	int i;
 
-	for(i=0;buffer[i]!='\0';i++)switch(buffer[i]){
+	for(i=0;buffer[i];i++)switch(buffer[i]){
 		case '_':
 			buffer[i]=' ';
 			break;
@@ -228,7 +223,7 @@ void desanitize_r(char *buffer){
 			break;
 		case '\r':
 		case '\n':
-			buffer[i]='\0';
+			buffer[i]=0;
 			break;
 	}
 }
@@ -244,7 +239,7 @@ list read_db(FILE *db){
 	do{	free_buffer=buffer=calloc(MAX_L, sizeof(char));
 		fgets(buffer, MAX_L, db);
 		if(feof(db))break;
-		if(*buffer=='\0'||*buffer=='\r'||*buffer=='\n'){ // Skip parsing empty lines
+		if(!*buffer||*buffer=='\r'||*buffer=='\n'){ // Skip parsing empty lines
 			free(free_buffer);
 			continue;
 		}
@@ -254,26 +249,26 @@ list read_db(FILE *db){
 		strcpy(data->raw, desanitize(buffer));
 
 		// Read the artist name
-		for(i=0;(buffer[i]!=' ')&&(buffer[i]!='\0')&&(buffer[i]!='\r')&&(buffer[i]!='\n');i++);
+		for(i=0;(buffer[i])&&(buffer[i]!=' ')&&(buffer[i]!='\r')&&(buffer[i]!='\n');i++);
 		data->artist=malloc((i+1)*sizeof(char)); // allocate exactly enough space
 		strncpy(data->artist, buffer, i);
-		data->artist[i]='\0'; // strncpy doesn't null-terminate.
+		data->artist[i]=0; // strncpy doesn't null-terminate.
 		buffer+=++i;
 		desanitize_r(data->artist);
 
 		// Read the album name
-		for(i=0;(buffer[i]!=' ')&&(buffer[i]!='\0')&&(buffer[i]!='\r')&&(buffer[i]!='\n');i++);
+		for(i=0;(buffer[i])&&(buffer[i]!=' ')&&(buffer[i]!='\r')&&(buffer[i]!='\n');i++);
 		data->album=malloc((i+1)*sizeof(char));
 		strncpy(data->album, buffer, i);
-		data->album[i]='\0'; // strncpy doesn't null-terminate.
+		data->album[i]=0; // strncpy doesn't null-terminate.
 		buffer+=++i;
 		desanitize_r(data->album);
 
 		// Read the year
-		for(i=0;(buffer[i]!=' ')&&(buffer[i]!='\0')&&(buffer[i]!='\r')&&(buffer[i]!='\n')&&i<8;i++);
+		for(i=0;(buffer[i])&&(buffer[i]!=' ')&&(buffer[i]!='\r')&&(buffer[i]!='\n')&&i<8;i++);
 		data->year=malloc((i+1)*sizeof(char));
 		strncpy(data->year, buffer, i++);
-		data->year[i]='\0'; // strncpy doesn't null-terminate.
+		data->year[i]=0; // strncpy doesn't null-terminate.
 		desanitize_r(data->year);
 		data->year_i=atoi(data->year);
 
@@ -358,7 +353,7 @@ char *sanitize(char *buffer){
 	char*buf=calloc(MAX_L, sizeof(char));
 
 	strcpy(buf, buffer);
-	for(i=0;buf[i]!='\n'&&buf[i]!='\0'&&buf[i]!='\r';i++)switch(buf[i]){
+	for(i=0;buf[i]&&buf[i]!='\n'&&buf[i]!='\r';i++)switch(buf[i]){
 		case '_':
 			buf[i]='\\';
 			break;
@@ -366,7 +361,7 @@ char *sanitize(char *buffer){
 			buf[i]='_';
 			break;
 	}
-	buf[i]='\0';
+	buf[i]=0;
 	return buf;
 }
 
@@ -398,9 +393,9 @@ void save_to(list db, FILE *out){
 char *mash_case(char *source){
 	int i;
 	char *value;
-	for(i=0;source[i]!='\0';i++);
+	for(i=0;source[i];i++);
 	value=calloc(++i, sizeof(char));
-	for(i=0;source[i]!='\0';i++)
+	for(i=0;source[i];i++)
 		if(source[i]>0x40 && source[i]<0x5B)
 			value[i]=source[i]+0x20;
 		else value[i]=source[i];
@@ -411,29 +406,19 @@ int search(char *src, char *tgt){
 	// Searches for a string in each element of the list.
 	// If found, returns location of first character, else -1
 	char *source, *target;
-	int i, p, len;
+	char *s;
 
 	// Case insensitive
 	source=mash_case(src);
 	target=mash_case(tgt);
 
+	if(s=strstr(source, target))
+		s=(char*)(s-src);
 
-	// If source is shorter than target, target can't possibly be contained in source.
-	for(len=0;target[len]!='\0';len++);
-	for(p=0;source[p]!='\0';p++);
-	if(p<len)
-		return -1;
+	free(source);
+	free(target);
 
-	len--;
-
-	for(i=0;source[i+len]!='\0';i++){
-		for(p=0;source[i+p]==target[p];p++){
-			if(p==len)
-				return i;
-		}
-	}
-
-	return -1;
+	return s?(int)s:-1;
 }
 
 // Removes an element at position pos from list db.
@@ -454,4 +439,10 @@ list rm(list db, int pos){
 
 	printf("Removed.\n");
 	return temp;
+}
+
+// Strip return characters from a string.
+void chomp(char *str){
+	if(str=strpbrk(str,"\r\n"))
+		*str=0;
 }
